@@ -1,19 +1,32 @@
 from fastapi import APIRouter, Depends, HTTPException
-from models import Usuario
+from models import Usuario, db
 from dependencies import pegar_sessao
 from main import bcrypt_context
 from schemas import UsuarioSchema
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+import pandas as pd
 
 
 cliente_router = APIRouter(prefix="/cliente",tags=["cliente"])
 
 @cliente_router.get("/")
-async def cliente():
+async def autenticar():
+    conn=db.connect()
+    with conn as con:
+        query= select(Usuario)
+        result= pd.read_sql(query,con)
+        result=result.to_dict(orient='records')
+
     """
-    Essa é a rota padrão de clientes
+    Essa é a rota padrão de autenticação
     """
-    return {"mensagem": "Você acaba de acessar a rota de clientes, meus parabéns!!"}
+    return {"mensagem": "Você acaba de acessar a rota de autenticação, meus parabéns!","data":result}
+
+
+
+
+
 
 
 # Alterar senha 

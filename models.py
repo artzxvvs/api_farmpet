@@ -32,16 +32,21 @@ class Cliente(Base):
     __tablename__ = "clientes"
 
     ID = Column("ID", Integer, primary_key=True, autoincrement=True)
-    NOME = Column("NOME", ForeignKey("usuarios.ID"), nullable=False)
-    ENDERECO = Column("ENDERECO", String, nullable=False)
+    NOME = Column("NOME",String, nullable=False)
+    ID_USUARIO = Column("ID_USUARIO", Integer, ForeignKey("usuarios.ID"), nullable=False)
+    ENDERECO = Column("RUA", String, nullable=False)
     CPF = Column("CPF", String, nullable=False, unique=True)
     TELEFONE = Column("TELEFONE", String, nullable=False)
 
-    def __init__(self,nome,endereco,cpf,telefone):
+    def __init__(self,nome,rua,numero,bairro,complemento,telefone, id_usuario):
         self.NOME = nome
-        self.ENDERECO = endereco
-        self.CPF = cpf
+        self.RUA = rua
+        self.CPF = 0,
+        self.BAIRRO = bairro
+        self.COMPLEMENTO = complemento
+        self.NUMERO = numero
         self.TELEFONE = telefone
+        self.ID_USUARIO = id_usuario
 # Colaborador
 class Colaborador(Base):
     #CARGO_LISTA = (

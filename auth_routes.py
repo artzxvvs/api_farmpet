@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from models import Usuario, db
+from models import Usuario, db,Cliente
 from dependencies import pegar_sessao
 from main import bcrypt_context
 from schemas import UsuarioSchema
@@ -9,18 +9,7 @@ import pandas as pd
 
 auth_router = APIRouter(prefix="/auth",tags=["auth"])
 
-@auth_router.get("/")
-async def autenticar():
-    conn=db.connect()
-    with conn as con:
-        query= select(Usuario)
-        result= pd.read_sql(query,con)
-        result=result.to_dict(orient='records')
 
-    """
-    Essa é a rota padrão de autenticação
-    """
-    return {"mensagem": "Você acaba de acessar a rota de autenticação, meus parabéns!","data":result}
 
 @auth_router.post("/criar_conta")
 async def criar_conta(usuarioschema:UsuarioSchema,session: Session=Depends(pegar_sessao)):
@@ -33,8 +22,14 @@ async def criar_conta(usuarioschema:UsuarioSchema,session: Session=Depends(pegar
     else:
         senha_criptografada = bcrypt_context.hash(usuarioschema.senha)
         novo_usuario = Usuario(usuarioschema.nome,usuarioschema.email,senha_criptografada)
+        data_dict= dict(usuarioschema)
+        
         session.add(novo_usuario)
         session.commit()
+        if data_dict['admin']== False:
+            novo_cliente= Cliente(usuarioschema.nome,usuarioschema.rua,usuarioschema.numero,usuarioschema.bairro,usuarioschema.complemento,usuarioschema.telefone, novo_usuario.ID)
+            session.add(novo_cliente)
+            session.commit()
         return {"mensagem": f"Usuário criado com sucesso {usuarioschema.email}"}
     
 @auth_router.patch("/alterar_senha")
