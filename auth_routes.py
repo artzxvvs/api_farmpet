@@ -1,18 +1,26 @@
 from fastapi import APIRouter, Depends, HTTPException
-from models import Usuario
+from models import Usuario, db
 from dependencies import pegar_sessao
 from main import bcrypt_context
 from schemas import UsuarioSchema
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+import pandas as pd
 
 auth_router = APIRouter(prefix="/auth",tags=["auth"])
 
 @auth_router.get("/")
 async def autenticar():
+    conn=db.connection()
+    with conn as con:
+        query= select(Usuario)
+        result= pd.read_sql(query,con)
+        result=result.to_dict(orient='records')
+
     """
     Essa é a rota padrão de autenticação
     """
-    return {"mensagem": "Você acaba de acessar a rota de autenticação, meus parabéns!!", "autenticado":False}
+    return {"mensagem": "Você acaba de acessar a rota de autenticação, meus parabéns!","data":result}
 
 @auth_router.post("/criar_conta")
 async def criar_conta(usuarioschema:UsuarioSchema,session: Session=Depends(pegar_sessao)):
@@ -43,8 +51,6 @@ async def alterar_senha(usuarioschema:UsuarioSchema,session: Session=Depends(peg
         session.add(usuario)
         session.commit()
         return {"mensagem": f"Senha alterada com sucesso {usuarioschema.email}"}
-
-
 
 
 
