@@ -41,15 +41,15 @@ class Cliente(Base):
     cpf = Column("CPF", String, nullable=False, unique=True)
     telefone = Column("TELEFONE", String, nullable=False)
 
-    def __init__(self,nome,rua,numero,bairro,complemento,telefone, id_usuario):
-        self.NOME = nome
-        self.RUA = rua
-        self.CPF = 0
-        self.BAIRRO = bairro
-        self.COMPLEMENTO = complemento
-        self.NUMERO = numero
-        self.TELEFONE = telefone
-        self.ID_USUARIO = id_usuario
+    def __init__(self, nome, rua, numero, bairro, complemento, telefone, id_usuario, cpf):
+        self.nome = nome
+        self.rua = rua
+        self.numero = numero
+        self.bairro = bairro
+        self.complemento = complemento
+        self.telefone = telefone
+        self.id_usuario = id_usuario
+        self.cpf = cpf
 # Colaborador
 class Colaborador(Base):
     #CARGO_LISTA = (
