@@ -32,16 +32,19 @@ class Cliente(Base):
     __tablename__ = "clientes"
 
     ID = Column("ID", Integer, primary_key=True, autoincrement=True)
-    NOME = Column("NOME",String, nullable=False)
-    ID_USUARIO = Column("ID_USUARIO", Integer, ForeignKey("usuarios.ID"), nullable=False)
-    ENDERECO = Column("RUA", String, nullable=False)
-    CPF = Column("CPF", String, nullable=False, unique=True)
-    TELEFONE = Column("TELEFONE", String, nullable=False)
+    nome = Column("NOME",String, nullable=False)
+    id_usuario = Column("ID_USUARIO", Integer, ForeignKey("usuarios.ID"), nullable=False)
+    rua = Column("RUA", String, nullable=False)
+    numero = Column("NUMERO", String, nullable=False)
+    bairro = Column("BAIRRO", String, nullable=False)
+    complemento = Column("COMPLEMENTO", String)
+    cpf = Column("CPF", String, nullable=False, unique=True)
+    telefone = Column("TELEFONE", String, nullable=False)
 
     def __init__(self,nome,rua,numero,bairro,complemento,telefone, id_usuario):
         self.NOME = nome
         self.RUA = rua
-        self.CPF = 0,
+        self.CPF = 0
         self.BAIRRO = bairro
         self.COMPLEMENTO = complemento
         self.NUMERO = numero
