@@ -11,7 +11,7 @@ auth_router = APIRouter(prefix="/auth",tags=["auth"])
 
 @auth_router.get("/")
 async def autenticar():
-    conn=db.connection()
+    conn=db.connect()
     with conn as con:
         query= select(Usuario)
         result= pd.read_sql(query,con)
