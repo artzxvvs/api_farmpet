@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
-
+#oi
 
 load_dotenv()  # Carregar variáveis de ambiente do arquivo .env
 SECRET_KEY = os.getenv("SECRET_KEY")
