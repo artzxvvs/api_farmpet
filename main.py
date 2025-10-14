@@ -13,7 +13,7 @@ bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Configuração do CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["localhost:3000"],  # Permite todas as origens
+    allow_origins=["http://localhost:3000"],  # Permite todas as origens
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
