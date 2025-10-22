@@ -22,7 +22,12 @@ app.add_middleware(
 # importar as rotas
 from auth_routes import auth_router
 from cliente_routes import cliente_router
-
+from remedio_routes import remedios_router
+from pet_routes import pet_router
+from colaborador_routes import colaborador_router
 # incluir as rotas ao app
+app.include_router(colaborador_router)
 app.include_router(auth_router)
 app.include_router(cliente_router)
+app.include_router(remedios_router)
+app.include_router(pet_router)

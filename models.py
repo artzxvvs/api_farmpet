@@ -52,12 +52,6 @@ class Cliente(Base):
         self.cpf = cpf
 # Colaborador
 class Colaborador(Base):
-    #CARGO_LISTA = (
-       # ('Veterinário', 'Veterinário'),
-       # ('Atendente', 'Atendente'),
-       # ('Estoquista', 'Estoquista'),
-       # ('Entregador', 'Entregador'),
-  #  )
     __tablename__ = "colaboradores"
 
     ID = Column("ID", Integer, primary_key=True, autoincrement=True)
@@ -71,6 +65,17 @@ class Colaborador(Base):
         self.CPF = cpf
         self.TELEFONE = telefone
         self.CARGO = cargo
+    def __init__(self, nome, cpf, telefone, cargo=None):
+        self.NOME = nome
+        self.CPF = cpf
+        self.TELEFONE = telefone
+        self.CARGO = cargo
+    def __init__(self, nome: str, cpf: str, telefone: str, cargo: str | None = None):
+        # Use apenas keyword args na criação para evitar confusão posicional
+       self.NOME = nome
+       self.CPF = cpf
+       self.TELEFONE = telefone
+       self.CARGO = cargo
 # Pets
 class Pet(Base):
     __tablename__ = "pets"
@@ -82,18 +87,18 @@ class Pet(Base):
     ENDERECO_DONO = Column("ENDERECO_DONO", String, nullable=False)
     CLIENTE_ID = Column("CLIENTE_ID", Integer, ForeignKey("clientes.ID"), nullable=False)
 
-    def __init__(self,nome,especie,raca,ENDERECO_DONO,cliente_id):
-        self.NOME = nome
+    def __init__(self, nome, especie, raca, endereco_dono, cliente_id):
+        self.NOME_PET = nome
         self.ESPECIE = especie
         self.RACA = raca
-        self.ENDERECO_DONO = ENDERECO_DONO
+        self.ENDERECO_DONO = endereco_dono
         self.CLIENTE_ID = cliente_id
 # Remédios
 class Remedio(Base):
     __tablename__ = "remedios"
 
     ID = Column("ID", Integer, primary_key=True, autoincrement=True)
-    NOME_REMEDIO = Column("NOME", String, nullable=False)
+    NOME = Column("NOME", String, nullable=False)
     DESCRICAO = Column("DESCRICAO", String, nullable=False)
     PRECO = Column("PRECO", Float, nullable=False)
     ESTOQUE = Column("ESTOQUE", Integer, nullable=False)
