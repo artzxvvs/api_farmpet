@@ -24,12 +24,16 @@ async def listar_colaboradores():
     return {"mensagem": "Lista de colaboradores acessada com sucesso!", "data": result}
 
 
-@colaborador_router.post("/Cadastrar_Colaborador")
+@colaborador_router.post("/Cadastrar_Colaborador", status_code=201)
 async def criar_colaborador(colaborador: Colaboradorchema, session: Session = Depends(pegar_sessao)):
     # Normaliza CPF (remove pontuação) e trim nos campos
     cpf_recebido = (colaborador.cpf or "").strip()
     cpf_normalizado = "".join(ch for ch in cpf_recebido if ch.isdigit())
     telefone_normalizado = (colaborador.telefone or "").strip()
+
+    # Validação rápida de CPF (espera 11 dígitos)
+    if cpf_normalizado and len(cpf_normalizado) != 11:
+        raise HTTPException(status_code=400, detail="CPF inválido: deve conter 11 dígitos")
 
     # debug: log do CPF e telefone recebidos
     print(f"[DEBUG] CPF recebido: {cpf_recebido} -> normalizado: {cpf_normalizado}")

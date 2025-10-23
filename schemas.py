@@ -91,3 +91,49 @@ class Colaboradorchema(BaseModel):
                 "cargo": "Veterinário, Atendente, Estoquista, Entregador"
             }
         }
+class ClienteSchema(BaseModel):
+    nome: str
+    rua: str
+    numero: str
+    bairro: str
+    complemento: Optional[str] = None
+    telefone: str
+    id_usuario: int
+    cpf: str
+
+    class Config():
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "nome": "João",
+                "rua": "Rua A",
+                "numero": "123",
+                "bairro": "Centro",
+                "complemento": "Apto 1",
+                "telefone": "11999999999",
+                "id_usuario": 1,
+                "cpf": "12345678900"
+            }
+        }
+
+
+class CompraSchema(BaseModel):
+    id_cliente: int
+    id_remedio: int
+    id_pet: Optional[int] = None
+    quantidade: int = Field(..., gt=0)
+    valor_desconto: Optional[float] = 0.0
+    valor_frete: Optional[float] = 0.0
+
+    class Config():
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "id_cliente": 1,
+                "id_remedio": 2,
+                "id_pet": 3,
+                "quantidade": 2,
+                "valor_desconto": 0.0,
+                "valor_frete": 10.0
+            }
+        }

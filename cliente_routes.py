@@ -38,10 +38,9 @@ async def alterar_senha(usuarioschema:UsuarioSchema,session: Session=Depends(peg
     """
     usuario = session.query(Usuario).filter(Usuario.EMAIL==usuarioschema.email).first()
     if not usuario:
-        raise HTTPException(status_code=400,detail="Email do usuário não cadastrado")
-    else:
-        senha_criptografada = bcrypt_context.hash(usuarioschema.senha)
-        usuario.SENHA = senha_criptografada
-        session.add(usuario)
-        session.commit()
-        return {"mensagem": f"Senha alterada com sucesso {usuarioschema.email}"}
+        raise HTTPException(status_code=404,detail="Email do usuário não cadastrado")
+    senha_criptografada = bcrypt_context.hash(usuarioschema.senha)
+    usuario.SENHA = senha_criptografada
+    session.add(usuario)
+    session.commit()
+    return {"mensagem": f"Senha alterada com sucesso {usuarioschema.email}"}

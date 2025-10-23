@@ -22,7 +22,7 @@ async def listar_remedios():
     """
     return {"mensagem": "Lista de remédios acessada com sucesso!", "data": result}
 
-@remedios_router.post("/Cadastrar_remedio")
+@remedios_router.post("/Cadastrar_remedio", status_code=201)
 async def criar_remedio(remedio: RemedioSchema, session: Session = Depends(pegar_sessao)):
     existente = session.query(Remedio).filter(Remedio.NOME == remedio.nome).first()
     if existente:

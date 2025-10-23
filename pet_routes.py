@@ -23,7 +23,7 @@ async def listar_pets():
     """
     return {"mensagem": "Lista de pets acessada com sucesso!", "data": result}
 
-@pet_router.post("/Cadastrar_pet")
+@pet_router.post("/Cadastrar_pet", status_code=201)
 async def criar_pet(petschemas: Petschema, session: Session = Depends(pegar_sessao)):
     existente = session.query(Pet).filter(Pet.NOME_PET == petschemas.nome, Pet.CLIENTE_ID == petschemas.id_cliente).first()
     if existente:
