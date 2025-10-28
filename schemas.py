@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Literal, Optional
+
+PaymentMethod = Literal["DINHEIRO", "PIX", "BOLETO", "CARTAO_CREDITO", "CARTAO_DEBITO"]
 
 class UsuarioSchema(BaseModel):
     nome: str
@@ -14,9 +16,9 @@ class UsuarioSchema(BaseModel):
     telefone: Optional[str] = None
     cpf: Optional[str] = None
 
-    class Config():
-        from_attributes = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
             "example": {
                 "nome": "João",
                 "email": "joao@email.com",
@@ -30,7 +32,8 @@ class UsuarioSchema(BaseModel):
                 "telefone": "11999999999",
                 "cpf": "12345678900"
             }
-        }
+        },
+    )
 
 class RemedioSchema(BaseModel):
     nome: str
@@ -38,9 +41,10 @@ class RemedioSchema(BaseModel):
     preco: float
     estoque: int
     receita: Optional[bool] = False
-    class Config():
-        from_attributes = True
-        json_schema_extra = {
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
             "example": {
                 "nome": "Dipirona",
                 "descricao": "Analgésico e antipirético",
@@ -48,7 +52,8 @@ class RemedioSchema(BaseModel):
                 "estoque": 100,
                 "receita": "True"
             }
-        }
+        },
+    )
 
 class Petschema(BaseModel):
     nome: str
@@ -58,10 +63,10 @@ class Petschema(BaseModel):
     id_cliente: int
     endereco_dono: str = Field(..., alias="endereço_dono")  # aceita também "endereço_dono" no JSON
 
-    class Config():
-        from_attributes = True
-        allow_population_by_field_name = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        from_attributes=True,
+        validate_by_name=True,  # substitui allow_population_by_field_name
+        json_schema_extra={
             "example": {
                 "nome": "Rex",
                 "especie": "Cachorro",
@@ -70,27 +75,28 @@ class Petschema(BaseModel):
                 "id_cliente": 1,
                 "endereço_dono": "Rua A, 123"
             }
-        }
-
-
+        },
+    )
 
 class Colaboradorchema(BaseModel):
     nome: str
     cpf: str
     telefone: str
     cargo: Optional[str] = None  # Veterinário, Atendente, Estoquista, Entregador
-    
-    class Config():
-        from_attributes = True
-        allow_population_by_field_name = True
-        json_schema_extra = {
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        validate_by_name=True,
+        json_schema_extra={
             "example": {
                 "nome": "Lula inácio da silva",
                 "cpf": "12345678900",
                 "telefone": "11999999999",
                 "cargo": "Veterinário, Atendente, Estoquista, Entregador"
             }
-        }
+        },
+    )
+
 class ClienteSchema(BaseModel):
     nome: str
     rua: str
@@ -101,9 +107,9 @@ class ClienteSchema(BaseModel):
     id_usuario: int
     cpf: str
 
-    class Config():
-        from_attributes = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
             "example": {
                 "nome": "João",
                 "rua": "Rua A",
@@ -114,8 +120,8 @@ class ClienteSchema(BaseModel):
                 "id_usuario": 1,
                 "cpf": "12345678900"
             }
-        }
-
+        },
+    )
 
 class CompraSchema(BaseModel):
     id_cliente: int
@@ -124,16 +130,46 @@ class CompraSchema(BaseModel):
     quantidade: int = Field(..., gt=0)
     valor_desconto: Optional[float] = 0.0
     valor_frete: Optional[float] = 0.0
+    forma_pagamento: PaymentMethod = Field(..., example="PIX")
+    parcelas: Optional[int] = Field(None, example=1, description="Usado somente quando forma_pagamento == CARTAO_CREDITO")
 
-    class Config():
-        from_attributes = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
             "example": {
                 "id_cliente": 1,
                 "id_remedio": 2,
                 "id_pet": 3,
                 "quantidade": 2,
                 "valor_desconto": 0.0,
-                "valor_frete": 10.0
+                "valor_frete": 10.0,
+                "forma_pagamento": "PIX",
+                "parcelas": None
+            }
+        },
+    )
+
+class CompraCreate(BaseModel):
+    id_cliente: int = Field(..., example=1)
+    id_remedio: int = Field(..., example=1)
+    id_pet: Optional[int] = Field(None, example=1)
+    quantidade: int = Field(..., example=2, gt=0)
+    valor_desconto: Optional[float] = Field(0.0, example=0.0)
+    valor_frete: Optional[float] = Field(0.0, example=10.0)
+    forma_pagamento: PaymentMethod = Field(..., example="PIX")
+    parcelas: Optional[int] = Field(None, example=1, description="Usado somente quando forma_pagamento == CARTAO_CREDITO")
+
+    model_config = ConfigDict(
+        json_schema_extra = {
+            "example": {
+                "id_cliente": 1,
+                "id_remedio": 1,
+                "id_pet": 1,
+                "quantidade": 2,
+                "valor_desconto": 0.0,
+                "valor_frete": 10.0,
+                "forma_pagamento": "PIX",
+                "parcelas": None
             }
         }
+    )

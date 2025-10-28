@@ -1,26 +1,30 @@
+import os
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, Float, ForeignKey, event
-from sqlalchemy.orm import declarative_base
-from sqlalchemy_utils import ChoiceType
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
-# Criar conexão engine
-db = create_engine("sqlite:///banco.db")
+# usar URL do .env; fallback para sqlite local
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./farmpet.db")
 
-# Criar base db
+# engine: passar connect_args para sqlite
+if DATABASE_URL.startswith("sqlite"):
+    db = create_engine(DATABASE_URL, connect_args={"check_same_thread": False}, echo=False)
+else:
+    db = create_engine(DATABASE_URL, echo=False)
+
+SessionLocal = sessionmaker(bind=db, expire_on_commit=False)
 Base = declarative_base()
 
-# Criar classes/tabelas do banco de dados
-# Usuarios
+# Usuários
 class Usuario(Base):
     __tablename__ = "usuarios"
-    ID = Column("ID", Integer, primary_key=True, autoincrement=True)
-    NOME = Column("NOME", String, nullable=False)
-    EMAIL =  Column("EMAIL", String, nullable=False, unique=True)
-    SENHA = Column("SENHA", String, nullable=False) 
-    ATIVO = Column("ATIVO", Boolean)
-    ADMIN = Column("ADMIN", Boolean,default=False) 
+    ID = Column(Integer, primary_key=True, autoincrement=True)
+    NOME = Column(String, nullable=False)
+    EMAIL = Column(String, nullable=False, unique=True)
+    SENHA = Column(String, nullable=False)
+    ATIVO = Column(Boolean, default=True)
+    ADMIN = Column(Boolean, default=False)
 
-    def __init__(self,nome,email,senha,ativo=True,admin=False):
+    def __init__(self, nome, email, senha, ativo=True, admin=False):
         self.NOME = nome
         self.EMAIL = email
         self.SENHA = senha
@@ -28,124 +32,109 @@ class Usuario(Base):
         self.ADMIN = admin
 
 # Clientes
-
 class Cliente(Base):
     __tablename__ = "clientes"
+    ID = Column(Integer, primary_key=True, autoincrement=True)
+    NOME = Column(String, nullable=False)
+    ID_USUARIO = Column(Integer, ForeignKey("usuarios.ID"), nullable=True)
+    RUA = Column(String, nullable=True)
+    NUMERO = Column(String, nullable=True)
+    BAIRRO = Column(String, nullable=True)
+    COMPLEMENTO = Column(String, nullable=True)
+    CPF = Column(String, nullable=True, unique=True)
+    TELEFONE = Column(String, nullable=True)
 
-    ID = Column("ID", Integer, primary_key=True, autoincrement=True)
-    nome = Column("NOME",String, nullable=False)
-    id_usuario = Column("ID_USUARIO", Integer, ForeignKey("usuarios.ID"), nullable=False)
-    rua = Column("RUA", String, nullable=False)
-    numero = Column("NUMERO", String, nullable=False)
-    bairro = Column("BAIRRO", String, nullable=False)
-    complemento = Column("COMPLEMENTO", String)
-    cpf = Column("CPF", String, nullable=False, unique=True)
-    telefone = Column("TELEFONE", String, nullable=False)
+    usuario = relationship("Usuario", foreign_keys=[ID_USUARIO])
 
-    def __init__(self, nome, rua, numero, bairro, complemento, telefone, id_usuario, cpf):
-        self.nome = nome
-        self.rua = rua
-        self.numero = numero
-        self.bairro = bairro
-        self.complemento = complemento
-        self.telefone = telefone
-        self.id_usuario = id_usuario
-        self.cpf = cpf
-# Colaborador
+# Colaboradores
 class Colaborador(Base):
     __tablename__ = "colaboradores"
+    ID = Column(Integer, primary_key=True, autoincrement=True)
+    NOME = Column(String, nullable=False)
+    CPF = Column(String, nullable=False, unique=True)
+    TELEFONE = Column(String, nullable=True)
+    CARGO = Column(String, nullable=True)
 
-    ID = Column("ID", Integer, primary_key=True, autoincrement=True)
-    NOME = Column("NOME", String, nullable=False)
-    CPF = Column("CPF", String, nullable=False, unique=True)
-    TELEFONE = Column("TELEFONE", String, nullable=False)
-    CARGO = Column("CARGO", String) # Veterinário, Atendente, Estoquista, Entregador
-    def __init__(self, nome: str, cpf: str, telefone: str, cargo: str | None = None):
-        """Inicializa um Colaborador. Recomenda-se usar kwargs para clareza.
-
-        Args:
-            nome: Nome completo do colaborador
-            cpf: CPF sem formatação (apenas dígitos)
-            telefone: Telefone do colaborador
-            cargo: Cargo opcional
-        """
+    def __init__(self, nome, cpf, telefone=None, cargo=None):
         self.NOME = nome
         self.CPF = cpf
         self.TELEFONE = telefone
         self.CARGO = cargo
+
 # Pets
 class Pet(Base):
     __tablename__ = "pets"
+    ID = Column(Integer, primary_key=True, autoincrement=True)
+    NOME = Column(String, nullable=False)
+    ID_CLIENTE = Column(Integer, ForeignKey("clientes.ID"), nullable=True)
+    cliente = relationship("Cliente", foreign_keys=[ID_CLIENTE])
 
-    ID = Column("ID", Integer, primary_key=True, autoincrement=True)
-    NOME_PET = Column("NOME", String, nullable=False)
-    ESPECIE = Column("ESPECIE", String, nullable=False)
-    RACA = Column("RACA", String, nullable=False)
-    ENDERECO_DONO = Column("ENDERECO_DONO", String, nullable=False)
-    CLIENTE_ID = Column("CLIENTE_ID", Integer, ForeignKey("clientes.ID"), nullable=False)
-
-    def __init__(self, nome, especie, raca, endereco_dono, cliente_id):
-        self.NOME_PET = nome
-        self.ESPECIE = especie
-        self.RACA = raca
-        self.ENDERECO_DONO = endereco_dono
-        self.CLIENTE_ID = cliente_id
 # Remédios
 class Remedio(Base):
     __tablename__ = "remedios"
+    ID = Column(Integer, primary_key=True, autoincrement=True)
+    NOME = Column(String, nullable=False, unique=True)
+    DESCRICAO = Column(String, nullable=True)
+    PRECO = Column(Float, nullable=False, default=0.0)
+    ESTOQUE = Column(Integer, default=0)
+    RECEITA = Column(String, nullable=True)
 
-    ID = Column("ID", Integer, primary_key=True, autoincrement=True)
-    NOME = Column("NOME", String, nullable=False)
-    DESCRICAO = Column("DESCRICAO", String, nullable=False)
-    PRECO = Column("PRECO", Float, nullable=False)
-    ESTOQUE = Column("ESTOQUE", Integer, nullable=False)
-    RECEITA = Column("RECEITA", String)
-
-    def __init__(self,nome,descricao,preco,estoque,receita):
+    def __init__(self, nome, descricao, preco, estoque=0, receita=None):
         self.NOME = nome
         self.DESCRICAO = descricao
         self.PRECO = preco
         self.ESTOQUE = estoque
         self.RECEITA = receita
 
+# Transações / Compras
 class Transacao(Base):
     __tablename__ = "transacoes"
+    ID = Column(Integer, primary_key=True, autoincrement=True)
+    ID_CLIENTE = Column(Integer, ForeignKey("clientes.ID"), nullable=False)
+    ID_REMEDIO = Column(Integer, ForeignKey("remedios.ID"), nullable=False)
+    ID_PET = Column(Integer, ForeignKey("pets.ID"), nullable=True)
+    QUANTIDADE = Column(Integer, nullable=False)
+    VALOR_DESCONTO = Column(Float, default=0.0)
+    VALOR_TOTAL = Column(Float, nullable=True)
+    VALOR_FRETE = Column(Float, default=0.0)
+    FORMA_PAGAMENTO = Column(String, nullable=True)  # DINHEIRO, PIX, BOLETO, CARTAO_CREDITO, CARTAO_DEBITO
+    PARCELAS = Column(Integer, nullable=True)
 
-    ID = Column("ID", Integer, primary_key=True, autoincrement=True)
-    # Mapear para nomes de colunas existentes no banco (contêm espaços)
-    ID_CLIENTE = Column("ID CLIENTE", Integer, ForeignKey("clientes.ID"))
-    ID_REMEDIO = Column("ID REMEDIO", Integer, ForeignKey("remedios.ID"))
-    ID_PET = Column("ID PET", Integer, ForeignKey("pets.ID"))
-    QUANTIDADE = Column("QUANTIDADE", Integer, nullable=False)
-    VALOR_DESCONTO = Column("VALOR DESCONTO", Float, default=0)
-    VALOR_TOTAL = Column("VALOR TOTAL", Float)
-    VALOR_FRETE = Column("VALOR FRETE", Float, default=0)
-
-    # Relationship para objetos relacionados (usa nomes de classes, não nomes de tabelas)
     remedio = relationship("Remedio", foreign_keys=[ID_REMEDIO])
     cliente = relationship("Cliente", foreign_keys=[ID_CLIENTE])
     pet = relationship("Pet", foreign_keys=[ID_PET])
 
-    def __init__(self, id_cliente, id_remedio, id_pet, quantidade, valor_desconto=0, valor_frete=0):
+    def __init__(self, id_cliente, id_remedio, id_pet, quantidade, valor_desconto=0, valor_frete=0, forma_pagamento="DINHEIRO", parcelas=None):
         self.ID_CLIENTE = id_cliente
         self.ID_REMEDIO = id_remedio
         self.ID_PET = id_pet
         self.QUANTIDADE = quantidade
         self.VALOR_DESCONTO = valor_desconto
         self.VALOR_FRETE = valor_frete
+        self.FORMA_PAGAMENTO = forma_pagamento
+        self.PARCELAS = parcelas
 
+# Normaliza parcelas e calcula valor total antes de persistir
 @event.listens_for(Transacao, "before_insert")
 @event.listens_for(Transacao, "before_update")
 def calcular_valor_total(mapper, connection, target):
-    from sqlalchemy.orm import Session  # importa dentro da função para evitar ciclos
+    from sqlalchemy.orm import Session
     session = Session(bind=connection)
-
     remedio = session.get(Remedio, target.ID_REMEDIO)
     if remedio:
-        preco_total = remedio.PRECO * target.QUANTIDADE
-        target.VALOR_TOTAL = preco_total - target.VALOR_DESCONTO + target.VALOR_FRETE
+        preco_total = (remedio.PRECO or 0) * (target.QUANTIDADE or 0)
+        target.VALOR_TOTAL = preco_total - (target.VALOR_DESCONTO or 0) + (target.VALOR_FRETE or 0)
+
+    forma = (target.FORMA_PAGAMENTO or "").upper() if target.FORMA_PAGAMENTO else ""
+    if forma == "CARTAO_CREDITO":
+        if not target.PARCELAS or target.PARCELAS < 1:
+            target.PARCELAS = 1
+    else:
+        target.PARCELAS = None
 
     session.close()
-# executar a criação dos metadados do seu banco (Criar efetivamento o banco de dados)
+
+# criar tabelas (opcional: comente se usar alembic)
+# Base.metadata.create_all(bind=db)
 
 
