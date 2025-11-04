@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,8 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()  # Carregar variáveis de ambiente do arquivo .env
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-app = FastAPI() 
-bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+app = FastAPI()
 
 # Configuração do CORS
 app.add_middleware(

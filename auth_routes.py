@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario, db,Cliente
 from dependencies import pegar_sessao
-from main import bcrypt_context
+from security import bcrypt_context
 from schemas import UsuarioSchema
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -35,18 +35,32 @@ async def criar_conta(usuarioschema:UsuarioSchema,session: Session=Depends(pegar
                 if not getattr(usuarioschema, campo, None):
                     raise HTTPException(status_code=400, detail=f"Campo obrigatório '{campo}' não informado para cliente.")
 
-            novo_cliente = Cliente(
-                usuarioschema.nome,
-                usuarioschema.rua,
-                usuarioschema.numero,
-                usuarioschema.bairro,
-                usuarioschema.complemento,
-                usuarioschema.telefone,
-                novo_usuario.ID,
-                usuarioschema.cpf,
-            )
-            session.add(novo_cliente)
-            session.commit()
+            # debug: imprimir os valores que serão usados para criar o cliente
+            print(f"[DEBUG] Criando cliente para usuario_id={novo_usuario.ID} com nome={usuarioschema.nome}, rua={usuarioschema.rua}, numero={usuarioschema.numero}, bairro={usuarioschema.bairro}, telefone={usuarioschema.telefone}, cpf={usuarioschema.cpf}")
+
+            try:
+                novo_cliente = Cliente(
+                    NOME=usuarioschema.nome,
+                    RUA=usuarioschema.rua,
+                    NUMERO=usuarioschema.numero,
+                    BAIRRO=usuarioschema.bairro,
+                    COMPLEMENTO=usuarioschema.complemento,
+                    TELEFONE=usuarioschema.telefone,
+                    ID_USUARIO=novo_usuario.ID,
+                    CPF=usuarioschema.cpf,
+                )
+                session.add(novo_cliente)
+                session.commit()
+                session.refresh(novo_cliente)
+                print(f"[DEBUG] Cliente criado com sucesso: id={novo_cliente.ID}")
+            except Exception as exc_cli:
+                # rollback da tentativa de criar cliente (não remove o usuário já criado)
+                session.rollback()
+                import traceback as _tb
+                print("[ERROR] falha ao criar cliente:")
+                _tb.print_exc()
+                # retornar erro claro ao cliente API
+                raise HTTPException(status_code=500, detail=f"Erro ao criar cliente: {str(exc_cli)}")
 
         return {"mensagem": f"Usuário criado com sucesso {usuarioschema.email}", "id": novo_usuario.ID}
     except Exception as exc:

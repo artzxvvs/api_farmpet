@@ -25,15 +25,22 @@ async def listar_pets():
 
 @pet_router.post("/Cadastrar_pet", status_code=201)
 async def criar_pet(petschemas: Petschema, session: Session = Depends(pegar_sessao)):
-    existente = session.query(Pet).filter(Pet.NOME_PET == petschemas.nome, Pet.CLIENTE_ID == petschemas.id_cliente).first()
+    # Usar nomes de coluna do modelo: NOME e ID_CLIENTE
+    existente = session.query(Pet).filter(Pet.NOME == petschemas.nome, Pet.ID_CLIENTE == petschemas.id_cliente).first()
     if existente:
         raise HTTPException(status_code=400, detail="Pet já cadastrado no sistema para este cliente")
     try:
-        novo_pet = Pet(petschemas.nome, petschemas.especie, petschemas.raca, petschemas.endereco_dono, petschemas.id_cliente)
+        # O modelo Pet atualmente só define NOME e ID_CLIENTE.
+        # Atribuímos explicitamente para evitar depender de um __init__ inexistente.
+        novo_pet = Pet()
+        novo_pet.NOME = petschemas.nome
+        novo_pet.ID_CLIENTE = petschemas.id_cliente
+        # campos opcionais no schema (especie, raca, idade, endereco_dono) não são
+        # persistidos porque não existem colunas correspondentes no modelo.
         session.add(novo_pet)
         session.commit()
         session.refresh(novo_pet)  # Garante que ID está disponível
-        return {"mensagem": f"Pet cadastrado com sucesso: {novo_pet.NOME_PET}", "id": novo_pet.ID}
+        return {"mensagem": f"Pet cadastrado com sucesso: {novo_pet.NOME}", "id": novo_pet.ID}
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))

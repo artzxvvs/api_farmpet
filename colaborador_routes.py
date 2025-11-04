@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Colaborador, db
 from dependencies import pegar_sessao
-from main import bcrypt_context
+from security import bcrypt_context
 from schemas import Colaboradorchema
 from sqlalchemy.orm import Session
 from sqlalchemy import select

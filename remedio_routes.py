@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Remedio, db
 from dependencies import pegar_sessao
-from main import bcrypt_context
+from security import bcrypt_context
 from schemas import RemedioSchema
 from sqlalchemy.orm import Session
 from sqlalchemy import select
