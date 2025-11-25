@@ -43,12 +43,11 @@ async def atualizar_endereco_cliente(cliente_id: int, endereco: EnderecoUpdateSc
     return {"mensagem": "Endereço do cliente atualizado com sucesso", "cliente_id": cliente.ID}
 
 
-
 @compra_router.get("/")
 async def listar_compras():
     conn = db.connect()
     with conn as con:
-        query = select(Transacao)
+        query = select(Transacao,Cliente).join(Cliente, Cliente.ID == Transacao.ID_CLIENTE)
         result = pd.read_sql(query, con)
         result = result.to_dict(orient='records')
 
