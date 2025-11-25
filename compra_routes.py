@@ -8,7 +8,40 @@ from sqlalchemy.exc import IntegrityError
 import pandas as pd
 
 
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from models import Cliente
+from dependencies import pegar_sessao
+from schemas import EnderecoUpdateSchema
+
 compra_router = APIRouter(prefix="/compras", tags=["Compras"])
+
+@compra_router.put("/enderecos/{cliente_id}", status_code=200)
+async def atualizar_endereco_cliente(cliente_id: int, endereco: EnderecoUpdateSchema, session: Session = Depends(pegar_sessao)):
+    """
+    Atualiza os dados de endereço para um cliente específico
+    """
+    cliente = session.get(Cliente, cliente_id)
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+
+    # Atualiza apenas os campos de endereço fornecidos
+    if endereco.rua is not None:
+        cliente.RUA = endereco.rua
+    if endereco.numero is not None:
+        cliente.NUMERO = endereco.numero
+    if endereco.bairro is not None:
+        cliente.BAIRRO = endereco.bairro
+    if endereco.complemento is not None:
+        cliente.COMPLEMENTO = endereco.complemento
+
+    session.add(cliente)
+    session.commit()
+    session.refresh(cliente)
+
+    return {"mensagem": "Endereço do cliente atualizado com sucesso", "cliente_id": cliente.ID}
+
 
 
 @compra_router.get("/")

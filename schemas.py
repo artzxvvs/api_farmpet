@@ -178,6 +178,23 @@ class CompraCreate(BaseModel):
 CategoriaBrinquedo = Literal["Pelúcia", "Bola", "Interativo", "Mordedor"]
 
 
+class EnderecoUpdateSchema(BaseModel):
+    rua: Optional[str] = None
+    numero: Optional[str] = None
+    bairro: Optional[str] = None
+    complemento: Optional[str] = None
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "rua": "Rua das Flores",
+                "numero": "123",
+                "bairro": "Centro",
+                "complemento": "Apartamento 12"
+            }
+        }
+    )
+
 class BrinquedoSchema(BaseModel):
     nome: str = Field(..., min_length=1, max_length=100, example="Urso de Pelúcia")
     categoria: CategoriaBrinquedo = Field(..., example="Pelúcia")
