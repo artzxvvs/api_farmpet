@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from models import Usuario, db
+from models import Usuario, db,Cliente
 from dependencies import pegar_sessao
 from security import bcrypt_context
 from schemas import UsuarioSchema
@@ -14,7 +14,7 @@ cliente_router = APIRouter(prefix="/cliente",tags=["cliente"])
 async def autenticar():
     conn=db.connect()
     with conn as con:
-        query= select(Usuario)
+        query= select(Cliente)
         result= pd.read_sql(query,con)
         result=result.to_dict(orient='records')
 

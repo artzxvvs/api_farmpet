@@ -118,6 +118,7 @@ class Transacao(Base):
     VALOR_FRETE = Column(Float, default=0.0)
     FORMA_PAGAMENTO = Column(String, nullable=True)  # DINHEIRO, PIX, BOLETO, CARTAO_CREDITO, CARTAO_DEBITO
     PARCELAS = Column(Integer, nullable=True)
+    
 
     remedio = relationship("Remedio", foreign_keys=[ID_REMEDIO])
     cliente = relationship("Cliente", foreign_keys=[ID_CLIENTE])
