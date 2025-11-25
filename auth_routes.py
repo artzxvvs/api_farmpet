@@ -99,3 +99,57 @@ async def Login(usuarioschema:UsuarioSchema,session: Session=Depends(pegar_sessa
     if not bcrypt_context.verify(usuarioschema.senha,usuario.SENHA):
         raise HTTPException(status_code=401,detail="Senha incorreta")
     return {"mensagem": f"Login realizado com sucesso {usuarioschema.email}", "id": usuario.ID}
+
+
+@auth_router.put("/atualizar_usuario/{usuario_id}")
+async def atualizar_usuario(usuario_id: int, usuarioschema: UsuarioSchema, session: Session = Depends(pegar_sessao)):
+    """
+    Atualiza os dados de um usuário existente
+    """
+    usuario = session.query(Usuario).filter(Usuario.ID == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verifica se o email já está sendo usado por outro usuário
+    if usuarioschema.email != usuario.EMAIL:
+        email_existe = session.query(Usuario).filter(Usuario.EMAIL == usuarioschema.email).first()
+        if email_existe:
+            raise HTTPException(status_code=400, detail="Email já está sendo usado por outro usuário")
+    
+    try:
+        usuario.NOME = usuarioschema.nome
+        usuario.EMAIL = usuarioschema.email
+        if usuarioschema.senha:  # Só atualiza a senha se foi fornecida
+            usuario.SENHA = bcrypt_context.hash(usuarioschema.senha)
+        usuario.ATIVO = usuarioschema.ativo if usuarioschema.ativo is not None else usuario.ATIVO
+        usuario.ADMIN = usuarioschema.admin if usuarioschema.admin is not None else usuario.ADMIN
+        
+        session.commit()
+        session.refresh(usuario)
+        return {"mensagem": f"Usuário atualizado com sucesso", "id": usuario.ID}
+    except Exception as exc:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar usuário: {str(exc)}")
+
+
+@auth_router.delete("/deletar_usuario/{usuario_id}")
+async def deletar_usuario(usuario_id: int, session: Session = Depends(pegar_sessao)):
+    """
+    Deleta um usuário do sistema
+    """
+    usuario = session.query(Usuario).filter(Usuario.ID == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    try:
+        # Verifica se existe cliente associado
+        cliente = session.query(Cliente).filter(Cliente.ID_USUARIO == usuario_id).first()
+        if cliente:
+            session.delete(cliente)
+        
+        session.delete(usuario)
+        session.commit()
+        return {"mensagem": f"Usuário deletado com sucesso", "id": usuario_id}
+    except Exception as exc:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao deletar usuário: {str(exc)}")

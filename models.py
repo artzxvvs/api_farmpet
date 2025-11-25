@@ -86,6 +86,25 @@ class Remedio(Base):
         self.ESTOQUE = estoque
         self.RECEITA = receita
 
+# Brinquedos
+class Brinquedo(Base):
+    __tablename__ = "brinquedos"
+    ID = Column(Integer, primary_key=True, autoincrement=True)
+    NOME = Column(String, nullable=False, unique=True)
+    CATEGORIA = Column(String, nullable=False)  # Pelúcia, Bola, Interativo, Mordedor
+    PRECO = Column(Float, nullable=False, default=0.0)
+    IMAGEM = Column(String, nullable=True)
+    ESTOQUE = Column(Integer, default=0)
+    DESCRICAO = Column(String, nullable=True)
+
+    def __init__(self, nome, categoria, preco, estoque=0, imagem=None, descricao=None):
+        self.NOME = nome
+        self.CATEGORIA = categoria
+        self.PRECO = preco
+        self.ESTOQUE = estoque
+        self.IMAGEM = imagem
+        self.DESCRICAO = descricao
+
 # Transações / Compras
 class Transacao(Base):
     __tablename__ = "transacoes"

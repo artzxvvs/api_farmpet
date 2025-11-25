@@ -38,3 +38,51 @@ async def criar_remedio(remedio: RemedioSchema, session: Session = Depends(pegar
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@remedios_router.put("/atualizar_remedio/{remedio_id}")
+async def atualizar_remedio(remedio_id: int, remedio: RemedioSchema, session: Session = Depends(pegar_sessao)):
+    """
+    Atualiza os dados de um remédio existente
+    """
+    remedio_existente = session.query(Remedio).filter(Remedio.ID == remedio_id).first()
+    if not remedio_existente:
+        raise HTTPException(status_code=404, detail="Remédio não encontrado")
+    
+    # Verifica se o nome já está sendo usado por outro remédio
+    if remedio.nome != remedio_existente.NOME:
+        nome_existe = session.query(Remedio).filter(Remedio.NOME == remedio.nome).first()
+        if nome_existe:
+            raise HTTPException(status_code=400, detail="Nome do remédio já está sendo usado")
+    
+    try:
+        remedio_existente.NOME = remedio.nome
+        remedio_existente.DESCRICAO = remedio.descricao
+        remedio_existente.PRECO = remedio.preco
+        remedio_existente.ESTOQUE = remedio.estoque
+        remedio_existente.RECEITA = str(remedio.receita) if remedio.receita is not None else None
+        
+        session.commit()
+        session.refresh(remedio_existente)
+        return {"mensagem": "Remédio atualizado com sucesso", "id": remedio_existente.ID}
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar remédio: {str(e)}")
+
+
+@remedios_router.delete("/deletar_remedio/{remedio_id}")
+async def deletar_remedio(remedio_id: int, session: Session = Depends(pegar_sessao)):
+    """
+    Deleta um remédio do sistema
+    """
+    remedio = session.query(Remedio).filter(Remedio.ID == remedio_id).first()
+    if not remedio:
+        raise HTTPException(status_code=404, detail="Remédio não encontrado")
+    
+    try:
+        session.delete(remedio)
+        session.commit()
+        return {"mensagem": "Remédio deletado com sucesso", "id": remedio_id}
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao deletar remédio: {str(e)}")

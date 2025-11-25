@@ -173,3 +173,29 @@ class CompraCreate(BaseModel):
             }
         }
     )
+
+
+CategoriaBrinquedo = Literal["Pelúcia", "Bola", "Interativo", "Mordedor"]
+
+
+class BrinquedoSchema(BaseModel):
+    nome: str = Field(..., min_length=1, max_length=100, example="Urso de Pelúcia")
+    categoria: CategoriaBrinquedo = Field(..., example="Pelúcia")
+    preco: float = Field(..., gt=0, example=49.90)
+    estoque: int = Field(..., ge=0, example=50)
+    imagem: Optional[str] = Field(None, example="/imagens/urso-pelucia.png")
+    descricao: Optional[str] = Field(None, max_length=500, example="Brinquedo macio e seguro para pets")
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "example": {
+                "nome": "Urso de Pelúcia",
+                "categoria": "Pelúcia",
+                "preco": 49.90,
+                "estoque": 50,
+                "imagem": "/imagens/urso-pelucia.png",
+                "descricao": "Brinquedo macio e seguro para pets"
+            }
+        },
+    )

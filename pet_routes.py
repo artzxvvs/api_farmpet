@@ -44,3 +44,42 @@ async def criar_pet(petschemas: Petschema, session: Session = Depends(pegar_sess
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@pet_router.put("/atualizar_pet/{pet_id}")
+async def atualizar_pet(pet_id: int, petschemas: Petschema, session: Session = Depends(pegar_sessao)):
+    """
+    Atualiza os dados de um pet existente
+    """
+    pet_existente = session.query(Pet).filter(Pet.ID == pet_id).first()
+    if not pet_existente:
+        raise HTTPException(status_code=404, detail="Pet não encontrado")
+    
+    try:
+        pet_existente.NOME = petschemas.nome
+        pet_existente.ID_CLIENTE = petschemas.id_cliente
+        
+        session.commit()
+        session.refresh(pet_existente)
+        return {"mensagem": "Pet atualizado com sucesso", "id": pet_existente.ID}
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar pet: {str(e)}")
+
+
+@pet_router.delete("/deletar_pet/{pet_id}")
+async def deletar_pet(pet_id: int, session: Session = Depends(pegar_sessao)):
+    """
+    Deleta um pet do sistema
+    """
+    pet = session.query(Pet).filter(Pet.ID == pet_id).first()
+    if not pet:
+        raise HTTPException(status_code=404, detail="Pet não encontrado")
+    
+    try:
+        session.delete(pet)
+        session.commit()
+        return {"mensagem": "Pet deletado com sucesso", "id": pet_id}
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao deletar pet: {str(e)}")
